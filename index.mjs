@@ -197,11 +197,24 @@ export const GeminiWebPlugin = async (_input, options = {}) => {
               return e.message;
             }
           }
+        }, {
+          type: 'password',
+          key: 'apiKey',
+          message: 'Backend API key',
+          placeholder: 'Backend API key (not a Google cookie)',
+          validate: value => {
+            if (!value || !value.trim()) return '请输入 API key';
+          }
         }],
         // Magpie stores raw prompt inputs as metadata unless authorize returns its own;
         // write the resolved URL so a blank answer doesn't persist as baseURL: "".
+        // Magpie only keeps the sign-in when authorize returns a key (or Magpie
+        // itself asked for one). The key field is not shown beside prompts when
+        // authorize exists, so ask for the key as a prompt and return it here;
+        // otherwise the sign-in always fails with "gave no key".
         authorize: async inputs => ({
           type: 'success',
+          key: inputs?.apiKey?.trim(),
           metadata: { baseURL: normalizeBaseURL(inputs?.baseURL || opts.baseURL) }
         })
       }, {
